@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechVision - Login and Signup</title>
+    <style>
+        /* Base Styles */
+        /* (previous CSS styles remain the same) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            --neon-blue: #00f7ff;
+            --electric-purple: #bc13fe;
+            --deep-gray: #1a1a1a;
+            --gradient: linear-gradient(135deg, var(--neon-blue), var(--electric-purple));
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--deep-gray);
+            color: white;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Particle Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            z-index: 1;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            background: rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: var(--gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s infinite alternate;
+        }
+
+        .welcome-text {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards;
+        }
+
+        .welcome-subtext {
+            font-size: 1.2rem;
+            color: #ffffff80;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s 0.3s forwards;
+        }
+
+        /* Form Section */
+        .form-section {
+            flex: 1;
+            padding: 4rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ffffff20;
+        }
+
+        .form-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            color: #ffffff80;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .form-tab.active {
+            color: white;
+        }
+
+        .form-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient);
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #ffffff20;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.2);
+        }
+
+        .form-label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: #ffffff80;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .form-input:focus + .form-label,
+        .form-input:not(:placeholder-shown) + .form-label {
+            transform: translateY(-1.5rem);
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #ffffff80;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: white;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--gradient);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
+        }
+
+        .forgot-password {
+            text-align: center;
+            color: #ffffff80;
+            text-decoration: none;
+            position: relative;
+            display: inline-block;
+        }
+
+        .forgot-password::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gradient);
+            transition: width 0.3s;
+        }
+
+        .forgot-password:hover::after {
+            width: 100%;
+        }
+
+        .social-login {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .social-login p {
+            color: #ffffff80;
+            margin-bottom: 1rem;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .footer a {
+            color: #ffffff80;
+            text-decoration: none;
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .footer a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gradient);
+            transition: width 0.3s;
+        }
+
+        .footer a:hover::after {
+            width: 100%;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 2px var(--neon-blue));
+            }
+            to {
+                filter: drop-shadow(0 0 10px var(--neon-blue));
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .welcome-section,
+            .form-section {
+                padding: 2rem;
+            }
+
+            .welcome-section {
+                min-height: 40vh;
+            }
+        }
+
+        /* Signup Form Styles */
+        #signupForm {
+            display: none;
+        }
+
+        #signupForm.active {
+            display: block;
+        }
+
+        #loginForm.hidden {
+            display: none;
+        }
+
+        .form-group.password-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .form-group.password-group .form-input {
+            flex: 1;
+        }
+
+        /* Enhanced Animations */
+        /* (previous animation styles remain the same) */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glowPulse {
+            0% {
+                filter: drop-shadow(0 0 2px var(--neon-blue));
+            }
+            50% {
+                filter: drop-shadow(0 0 10px var(--neon-blue));
+            }
+            100% {
+                filter: drop-shadow(0 0 2px var(--neon-blue));
+            }
+        }
+
+        .logo {
+            animation: glowPulse 2s infinite;
+        }
+
+        .welcome-text,
+        .welcome-subtext {
+            animation-delay: 0.5s;
+        }
+
+        .form-tab.active::after {
+            animation: glowPulse 2s infinite;
+        }
+
+        .submit-btn:hover {
+            animation: glowPulse 1s infinite;
+        }
+
+
+        /* Color Scheme Modifications */
+        /* (previous color scheme styles remain the same) */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glowPulse {
+            0% {
+                filter: drop-shadow(0 0 2px var(--neon-blue));
+            }
+            50% {
+                filter: drop-shadow(0 0 10px var(--neon-blue));
+            }
+            100% {
+                filter: drop-shadow(0 0 2px var(--neon-blue));
+            }
+        }
+
+        .logo {
+            animation: glowPulse 2s infinite;
+        }
+
+        .welcome-text,
+        .welcome-subtext {
+            animation-delay: 0.5s;
+        }
+
+        .form-tab.active::after {
+            animation: glowPulse 2s infinite;
+        }
+
+        .submit-btn:hover {
+            animation: glowPulse 1s infinite;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="logo">TechVision</div>
+            <h1 class="welcome-text">Welcome to TechVision</h1>
+            <p class="welcome-subtext">Elevate your digital experiences</p>
+        </section>
+
+        <!-- Form Section -->
+        <section class="form-section">
+            <div class="form-container">
+                <div class="form-tabs">
+                    <div class="form-tab active" data-form="login">Sign In</div>
+                    <div class="form-tab" data-form="signup">Sign Up</div>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="active">
+                    <div class="form-group">
+                        <input type="email" class="form-input" placeholder=" " required>
+                        <label class="form-label">Email Address</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-input" placeholder=" " required>
+                        <label class="form-label">Password</label>
+                        <span class="password-toggle">👁️</span>
+                    </div>
+                    <button type="submit" class="submit-btn">Sign In</button>
+                    <div style="text-align: center;">
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <div class="social-login">
+                        <p>Or continue with</p>
+                        <div class="social-icons">
+                            <div class="social-icon">G</div>
+                            <div class="social-icon">f</div>
+                            <div class="social-icon">in</div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signupForm">
+                    <div class="form-group">
+                        <input type="text" class="form-input" placeholder=" " required>
+                        <label class="form-label">Full Name</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-input" placeholder=" " required>
+                        <label class="form-label">Email Address</label>
+                    </div>
+                    <div class="form-group password-group">
+                        <div class="form-input-wrapper">
+                            <input type="password" class="form-input" placeholder=" " required>
+                            <label class="form-label">Password</label>
+                            <span class="password-toggle">👁️</span>
+                        </div>
+                        <div class="form-input-wrapper">
+                            <input type="password" class="form-input" placeholder=" " required>
+                            <label class="form-label">Confirm Password</label>
+                            <span class="password-toggle">👁️</span>
+                        </div>
+                    </div>
+                    <div class="password-strength-meter">
+                        <div class="password-strength-bar"></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Sign Up</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <!-- (footer code remains the same) -->
+    </footer>
+
+    <script>
+        // Particle Animation
+        // (particle animation code remains the same)
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 3 + 1;
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                
+                particle.style.animation = `float ${duration}s ${delay}s infinite`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Form Tabs
+        document.querySelectorAll('.form-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const loginForm = document.getElementById('loginForm');
+                const signupForm = document.getElementById('signupForm');
+
+                if (tab.dataset.form === 'login') {
+                    loginForm.classList.add('active');
+                    signupForm.classList.remove('active');
+                    loginForm.classList.remove('hidden');
+                    signupForm.classList.add('hidden');
+                } else {
+                    signupForm.classList.add('active');
+                    loginForm.classList.remove('active');
+                    signupForm.classList.remove('hidden');
+                    loginForm.classList.add('hidden');
+                }
+            });
+        });
+
+        // Password Toggle
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const input = toggle.previousElementSibling.previousElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggle.textContent = '👁️‍🗨️';
+                } else {
+                    input.type = 'password';
+                    toggle.textContent = '👁️';
+                }
+            });
+        });
+
+
+        // Password Strength Meter
+        const passwordInput = document.querySelector('#signupForm .form-input[type="password"]');
+        const passwordStrengthBar = document.querySelector('.password-strength-bar');
+
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            const strength = calculatePasswordStrength(password);
+            passwordStrengthBar.style.width = `${strength * 100}%`;
+        });
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength += 0.25;
+            if (/[a-z]/.test(password)) strength += 0.25;
+            if (/[A-Z]/.test(password)) strength += 0.25;
+            if (/\d/.test(password)) strength += 0.25;
+            return Math.min(strength, 1);
+        }
+
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+        });
+    </script>
+</body>
+</html>
