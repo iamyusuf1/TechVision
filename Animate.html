@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLUX | Ultimate Animation Experience</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+        
+        :root {
+            --primary: #0fe;
+            --secondary: #f0e;
+            --dark: #030014;
+            --light: #ffffff;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+        }
+        
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            position: fixed;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+            transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease;
+        }
+        
+        .cursor-trail {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            position: fixed;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.7;
+        }
+        
+        #noise-filter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 238, 0.5);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 30px;
+        }
+        
+        nav ul li a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+        
+        nav ul li a:hover {
+            color: var(--primary);
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 2;
+            padding-top: 100vh;
+        }
+        
+        section {
+            min-height: 100vh;
+            padding: 100px 10%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+        
+        h1 {
+            font-size: 5rem;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            max-width: 700px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: none;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+        
+        .btn:hover {
+            color: var(--dark);
+        }
+        
+        .btn:hover::before {
+            left: 0;
+        }
+        
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+        
+        .hero-content {
+            transform: translateY(0);
+            opacity: 1;
+            transition: transform 1s ease, opacity 1s ease;
+        }
+        
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: var(--primary);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .card {
+            background: rgba(3, 0, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            z-index: -1;
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .showcase {
+            position: relative;
+            height: 500px;
+            margin: 80px 0;
+            perspective: 1000px;
+        }
+        
+        .showcase-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(3, 0, 20, 0.5);
+            border-radius: 20px;
+            transform-style: preserve-3d;
+            transform: rotateY(0deg) translateZ(0);
+            transition: transform 1s ease;
+            overflow: hidden;
+        }
+        
+        .glass-effect {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%);
+            pointer-events: none;
+        }
+        
+        .footer {
+            padding: 80px 10%;
+            background: rgba(3, 0, 20, 0.8);
+            position: relative;
+            z-index: 5;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .footer-column {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-column ul li a {
+            color: var(--light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: var(--primary);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--primary);
+            color: var(--dark);
+            transform: translateY(-5px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                padding: 20px;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            nav ul li {
+                margin-left: 15px;
+            }
+            
+            nav ul li a {
+                font-size: 0.9rem;
+            }
+            
+            h1 {
+                font-size: 3rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            section {
+                padding: 60px 20px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .pulsing {
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .rotating {
+            animation: rotate 10s linear infinite;
+        }
+        
+        /* Loading screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loader {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .loader-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-circle:nth-child(2) {
+            border-top-color: transparent;
+            border-right-color: var(--secondary);
+            animation-duration: 1.3s;
+        }
+        
+        .loader-circle:nth-child(3) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-top-color: transparent;
+            border-left-color: var(--primary);
+            animation-duration: 1.6s;
+            animation-direction: reverse;
+        }
+        
+        .loader-text {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: rgba(3, 0, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 40px;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        
+        .modal-close::before,
+        .modal-close::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+        
+        .modal-close::before {
+            transform: rotate(45deg);
+        }
+        
+        .modal-close::after {
+            transform: rotate(-45deg);
+        }
+        
+        /* Effects canvas */
+        #effects-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* Parallax effect */
+        .parallax-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
+        </div>
+        <div class="loader-text">Initializing Experience</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    
+    <!-- Noise Filter -->
+    <div id="noise-filter"></div>
+    
+    <!-- Particle Container -->
+    <div id="particle-container"></div>
+    
+    <!-- WebGL Background -->
+    <canvas id="bg-canvas"></canvas>
+    
+    <!-- Special Effects Canvas -->
+    <canvas id="effects-canvas"></canvas>
+    
+    <!-- Header -->
+    <header>
+        <div class="logo">FLUX</div>
+        <nav>
+            <ul>
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#effects" class="nav-link">Effects</a></li>
+                <li><a href="#showcase" class="nav-link">Showcase</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 class="glitch-text">ULTIMATE ANIMATIONS</h1>
+                <p class="tagline">Prepare to be shocked by the impossible</p>
+                <a href="#effects" class="btn explore-btn">Explore Effects</a>
+            </div>
+        </section>
+        
+        <!-- Effects Section -->
+        <section id="effects">
+            <div class="section-title">
+                <h2>Mind-Blowing Effects</h2>
+                <p>Witness the future of web animation technology</p>
+            </div>
+            
+            <div class="grid">
+                <div class="card effect-card" data-effect="particles">
+                    <div class="card-icon">🔥</div>
+                    <h3>Insane Particle Simulations</h3>
+                    <p>Swirling galaxies, liquid metal morphing, energy pulses, and physics-based particle interactions.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+                
+                <div class="card effect-card" data-effect="hyper-realistic">
+                    <div class="card-icon">⚡</div>
+                    <h3>Hyper-Realistic Motion</h3>
+                    <p>Glass shattering in real time, neon energy bursts, and smoke trails reacting to cursor movements.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+                
+                <div class="card effect-card" data-effect="morphing">
+                    <div class="card-icon">🌪</div>
+                    <h3>Surreal Morphing Elements</h3>
+                    <p>Sections that warp, twist, and melt seamlessly as users scroll or hover.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+                
+                <div class="card effect-card" data-effect="ai-driven">
+                    <div class="card-icon">🎭</div>
+                    <h3>AI-Driven Reactive Animations</h3>
+                    <p>Animations that respond dynamically to user interactions in unexpected, cinematic ways.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+                
+                <div class="card effect-card" data-effect="3d-transform">
+                    <div class="card-icon">🔮</div>
+                    <h3>3D Transformations</h3>
+                    <p>Gravity-defying objects, holographic displays, and real-time depth effects that create a parallax illusion.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+                
+                <div class="card effect-card" data-effect="shockwave">
+                    <div class="card-icon">💥</div>
+                    <h3>Shockwave & Explosion Effects</h3>
+                    <p>Sections transition with Hollywood-style explosive impacts and ripple distortions.</p>
+                    <a href="#" class="btn effect-trigger">Experience</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Showcase Section -->
+        <section id="showcase">
+            <div class="section-title">
+                <h2>Digital Dream World</h2>
+                <p>Step into a realm of impossible animations and surreal interactions</p>
+            </div>
+            
+            <div class="showcase">
+                <div class="showcase-item" id="showcase-1">
+                    <div class="glass-effect"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact Section -->
+        <section id="contact">
+            <div class="section-title">
+                <h2>Enter The Void</h2>
+                <p>Ready to create your own digital masterpiece?</p>
+            </div>
+            
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <input type="text" id="name" required placeholder="Your Name">
+                    <label for="name">Your Name</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="email" id="email" required placeholder="Your Email">
+                    <label for="email">Your Email</label>
+                </div>
+                
+                <div class="form-group">
+                    <textarea id="message" required placeholder="Your Message"></textarea>
+                    <label for="message">Your Message</label>
+                </div>
+                
+                <button type="submit" class="btn">Send Message</button>
+            </form>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>FLUX</h3>
+                    <p>The ultimate animation experience that shocks users with jaw-dropping visual effects.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">F</a>
+                        <a href="#" class="social-link">T</a>
+                        <a href="#" class="social-link">I</a>
+                        <a href="#" class="social-link">L</a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Navigation</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#effects">Effects</a></li>
+                        <li><a href="#showcase">Showcase</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookies Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 FLUX | The Ultimate Animation Experience</p>
+            </div>
+        </footer>
+    </main>
+    
+    <!-- Effect Modal -->
+    <div class="modal" id="effect-modal">
+        <div class="modal-content">
+            <div class="modal-close" id="modal-close"></div>
+            <h2 id="modal-title">Effect Title</h2>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.3/particles.min.js"></script>
+    
+    <script>
+        // Wait for everything to load
+        window.addEventListener('load', function() {
+            // Initialize loading screen
+            let progress = 0;
+            const progressBar = document.getElementById('progress');
+            const loadingScreen = document.getElementById('loading-screen');
+            
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) {
+                    progress = 100;
+                    clearInterval(loadingInterval);
+                    
+                    // Hide loading screen
+                    setTimeout(() => {
+                        gsap.to(loadingScreen, {
+                            opacity: 0,
+                            duration: 1,
+                            onComplete: () => {
+                                loadingScreen.style.display = 'none';
+                                
+                                // Initialize animations after loading
+                                initAnimations();
+                            }
+                        });
+                    }, 500);
+                }
+                
+                progressBar.style.width = `${progress}%`;
+            }, 150);
+            
+            // Initialize custom cursor
+            const cursor = document.querySelector('.cursor');
+            
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+                
+                // Create cursor trail effect
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = `${e.clientX}px`;
+                trail.style.top = `${e.clientY}px`;
+                document.body.appendChild(trail);
+                
+                setTimeout(() => {
+                    let opacity = 0.7;
+                    const fadeInterval = setInterval(() => {
+                        opacity -= 0.1;
+                        trail.style.opacity = opacity;
+                        
+                        if (opacity <= 0) {
+                            clearInterval(fadeInterval);
+                            document.body.removeChild(trail);
+                        }
+                    }, 20);
+                }, 100);
+            });
+            
+            // Make cursor grow on hover over links and buttons
+            const links = document.querySelectorAll('a, button, .effect-card');
+            
+            links.forEach((link) => {
+                link.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(3)';
+                    cursor.style.backgroundColor = 'var(--secondary)';
+                    cursor.style.mixBlendMode = 'difference';
+                });
+                
+                link.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                    cursor.style.backgroundColor = 'var(--primary)';
+                    cursor.style.mixBlendMode = 'difference';
+                });
+            });
+            
+            // Smooth scrolling for navigation links
+            const navLinks = document.querySelectorAll('.nav-link, .explore-btn');
+            
+            navLinks.forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const targetId = link.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetSection.offsetTop,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Modal functionality
+            const modal = document.getElementById('effect-modal');
+            const modalClose = document.getElementById('modal-close');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            const effectTriggers = document.querySelectorAll('.effect-trigger');
+            
+            effectTriggers.forEach((trigger) => {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    const effectCard = trigger.closest('.effect-card');
+                    const effectType = effectCard.getAttribute('data-effect');
+                    const effectTitle = effectCard.querySelector('h3').textContent;
+                    
+                    modalTitle.textContent = effectTitle;
+                    
+                    // Create effect content based on type
+                    createEffectContent(effectType);
+                    // Show modal
+                    modal.classList.add('active');
+                    
+                    // Create shockwave effect
+                    createShockwave(e.clientX, e.clientY);
+                });
+            });
+            modalClose.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+
+            // Close modal when clicking outside content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
+            // Effect content creator
+            function createEffectContent(effectType) {
+                modalContent.innerHTML = '';
+                
+                switch (effectType) {
+                    case 'particles':
+                        createParticleEffect();
+                        break;
+                    case 'hyper-realistic':
+                        createHyperRealisticEffect();
+                        break;
+                    case 'morphing':
+                        createMorphingEffect();
+                        break;
+                    case 'ai-driven':
+                        createAIDrivenEffect();
+                        break;
+                    case '3d-transform':
+                        create3DTransformEffect();
+                        break;
+                    case 'shockwave':
+                        createShockwaveEffect();
+                        break;
+                    default:
+                        modalContent.innerHTML = '<p>Effect coming soon...</p>';
+                }
+            }
+
+            // Shockwave effect
+            function createShockwave(x, y) {
+                const canvas = document.getElementById('effects-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas to full window size
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Shockwave properties
+                let radius = 0;
+                const maxRadius = Math.max(window.innerWidth, window.innerHeight);
+                let opacity = 1;
+                
+                function drawShockwave() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw shockwave
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(0, 255, 238, ${opacity})`;
+                    ctx.lineWidth = 10;
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius - 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 0, 238, ${opacity * 0.7})`;
+                    ctx.lineWidth = 5;
+                    ctx.stroke();
+                    
+                    // Update properties
+                    radius += 15;
+                    opacity -= 0.02;
+                    
+                    // Continue animation if not complete
+                    if (radius < maxRadius && opacity > 0) {
+                        requestAnimationFrame(drawShockwave);
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                }
+                
+                // Start animation
+                drawShockwave();
+            }
+            
+            // Initialize WebGL background
+            function initWebGLBackground() {
+                const canvas = document.getElementById('bg-canvas');
+                
+                // Set up Three.js scene
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                
+                // Add ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+                
+                // Add directional light
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(1, 1, 1);
+                scene.add(directionalLight);
+                
+                // Create fluid background
+                const geometry = new THREE.PlaneGeometry(50, 50, 100, 100);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x030014,
+                    wireframe: true,
+                    emissive: 0x0fe0fe,
+                    emissiveIntensity: 0.5,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                
+                const plane = new THREE.Mesh(geometry, material);
+                plane.rotation.x = -Math.PI / 2;
+                scene.add(plane);
+                
+                // Create floating particles
+                const particlesGeometry = new THREE.BufferGeometry();
+                const particlesCount = 1000;
+                
+                const posArray = new Float32Array(particlesCount * 3);
+                
+                for (let i = 0; i < particlesCount * 3; i++) {
+                    posArray[i] = (Math.random() - 0.5) * 50;
+                }
+                
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                
+                const particlesMaterial = new THREE.PointsMaterial({
+                    size: 0.1,
+                    color: 0x0fe0fe,
+                    transparent: true
+                });
+                
+                const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+                scene.add(particlesMesh);
+                
+                // Position camera
+                camera.position.z = 15;
+                camera.position.y = 5;
+                camera.lookAt(0, 0, 0);
+                
+                // Mouse movement effect
+                let mouseX = 0;
+                let mouseY = 0;
+                
+                document.addEventListener('mousemove', (event) => {
+                    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                });
+                
+                // Animation loop
+                function animate() {
+                    requestAnimationFrame(animate);
+                    
+                    // Animate vertices
+                    const positions = geometry.attributes.position.array;
+                    
+                    for (let i = 0; i < positions.length; i += 3) {
+                        const x = positions[i];
+                        const y = positions[i + 1];
+                        const z = positions[i + 2];
+                        
+                        positions[i + 2] = z + Math.sin((x + Date.now() * 0.0005) * 0.5) * 0.2;
+                    }
+                    
+                    geometry.attributes.position.needsUpdate = true;
+                    
+                    // Rotate particle system
+                    particlesMesh.rotation.y += 0.001;
+                    
+                    // Move camera based on mouse
+                    camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+                    camera.position.y += (mouseY * 2 - camera.position.y) * 0.05;
+                    camera.lookAt(scene.position);
+                    
+                    renderer.render(scene, camera);
+                }
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                
+                // Start animation
+                animate();
+            }
+            
+            // Effect implementation functions
+            function createParticleEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.backgroundColor = 'rgba(3, 0, 20, 0.9)';
+                
+                modalContent.appendChild(container);
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                container.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Create particles
+                const particles = [];
+                const particleCount = 100;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 4 + 1,
+                        color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                        vx: Math.random() * 2 - 1,
+                        vy: Math.random() * 2 - 1,
+                        life: Math.random() * 100 + 50
+                    });
+                }
+                
+                // Mouse interaction
+                let mouseX = 0;
+                let mouseY = 0;
+                let mouseRadius = 100;
+                
+                container.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    mouseX = e.clientX - rect.left;
+                    mouseY = e.clientY - rect.top;
+                    
+                    // Create new particles on mouse move
+                    for (let i = 0; i < 5; i++) {
+                        particles.push({
+                            x: mouseX,
+                            y: mouseY,
+                            radius: Math.random() * 4 + 2,
+                            color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                            vx: Math.random() * 6 - 3,
+                            vy: Math.random() * 6 - 3,
+                            life: Math.random() * 50 + 20
+                        });
+                    }
+                });
+                
+                // Animation loop
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw and update particles
+                    for (let i = 0; i < particles.length; i++) {
+                        const p = particles[i];
+                        
+                        p.life--;
+                        
+                        if (p.life <= 0) {
+                            particles.splice(i, 1);
+                            i--;
+                            continue;
+                        }
+                        
+                        // Calculate distance to mouse
+                        const dx = p.x - mouseX;
+                        const dy = p.y - mouseY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Apply mouse repulsion
+                        if (distance < mouseRadius) {
+                            const force = (mouseRadius - distance) / mouseRadius;
+                            p.vx += (dx / distance) * force * 0.5;
+                            p.vy += (dy / distance) * force * 0.5;
+                        }
+                        
+                        // Update position
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        
+                        // Bounce off walls
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -0.8;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -0.8;
+                        
+                        // Apply friction
+                        p.vx *= 0.99;
+                        p.vy *= 0.99;
+                        
+                        // Draw particle
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.life / 100;
+                        ctx.fill();
+                        
+                        // Connect nearby particles
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const p2 = particles[j];
+                            const dx = p.x - p2.x;
+                            const dy = p.y - p2.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < 50) {
+                                ctx.beginPath();
+                                ctx.moveTo(p.x, p.y);
+                                ctx.lineTo(p2.x, p2.y);
+                                ctx.strokeStyle = p.color;
+                                ctx.globalAlpha = (1 - distance / 50) * 0.5 * (p.life / 100);
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    
+                    if (modalContent.contains(container)) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+                
+                animate();
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>Liquid Particle System</h3>
+                    <p>Move your mouse over the canvas to interact with the particles. The particles will repel from your cursor, creating a fluid-like effect.</p>
+                    <p>Each particle is connected to nearby particles, creating a network effect that simulates liquid behavior.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            function createHyperRealisticEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.background = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23030014"/></svg>\')';
+                modalContent.appendChild(container);
+                
+                // Create canvas for glass effect
+                const canvas = document.createElement('canvas');
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                container.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Add glass panel
+                const glassPanel = document.createElement('div');
+                glassPanel.style.position = 'absolute';
+                glassPanel.style.top = '50%';
+                glassPanel.style.left = '50%';
+                glassPanel.style.transform = 'translate(-50%, -50%)';
+                glassPanel.style.width = '200px';
+                glassPanel.style.height = '200px';
+                glassPanel.style.background = 'rgba(255, 255, 255, 0.1)';
+                glassPanel.style.borderRadius = '10px';
+                glassPanel.style.boxShadow = '0 0 20px rgba(0, 255, 238, 0.5)';
+                glassPanel.style.backdropFilter = 'blur(10px)';
+                glassPanel.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                glassPanel.style.cursor = 'pointer';
+                glassPanel.innerHTML = '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-family: \'Orbitron\', sans-serif;">CLICK TO SHATTER</div>';
+                container.appendChild(glassPanel);
+                
+                // Glass shattering effect
+                let shattered = false;
+                const shards = [];
+                
+                glassPanel.addEventListener('click', () => {
+                    if (!shattered) {
+                        shattered = true;
+                        
+                        // Create shards
+                        const shardCount = 30;
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+                        
+                        for (let i = 0; i < shardCount; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = Math.random() * 50 + 50;
+                            
+                            shards.push({
+                                x: centerX,
+                                y: centerY,
+                                targetX: centerX + Math.cos(angle) * distance,
+                                targetY: centerY + Math.sin(angle) * distance,
+                                size: Math.random() * 30 + 20,
+                                rotation: Math.random() * 360,
+                                rotationSpeed: Math.random() * 10 - 5,
+                                opacity: 1
+                            });
+                        }
+                        
+                        // Hide original panel
+                        glassPanel.style.display = 'none';
+                        
+                        // Start animation
+                        animateShards();
+                    }
+                });
+                
+                function animateShards() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    let allFaded = true;
+                    
+                    for (const shard of shards) {
+                        ctx.save();
+                        
+                        // Move toward target
+                        shard.x += (shard.targetX - shard.x) * 0.1;
+                        shard.y += (shard.targetY - shard.y) * 0.1;
+                        
+                        // Rotate shard
+                        shard.rotation += shard.rotationSpeed;
+                        
+                        // Fade out
+                        shard.opacity -= 0.01;
+                        
+                        if (shard.opacity > 0) {
+                            allFaded = false;
+                        }
+                        
+                        // Draw shard
+                        ctx.translate(shard.x, shard.y);
+                        ctx.rotate(shard.rotation * Math.PI / 180);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(0, -shard.size / 2);
+                        ctx.lineTo(shard.size / 2, shard.size / 2);
+                        ctx.lineTo(-shard.size / 2, shard.size / 2);
+                        ctx.closePath();
+                        
+                        ctx.fillStyle = `rgba(255, 255, 255, ${shard.opacity * 0.2})`;
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = `rgba(0, 255, 238, ${shard.opacity})`;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                    }
+                    
+                    if (!allFaded && modalContent.contains(container)) {
+                        requestAnimationFrame(animateShards);
+                    } else if (allFaded) {
+                        // Reset after animation completes
+                        setTimeout(() => {
+                            shattered = false;
+                            glassPanel.style.display = 'block';
+                            shards.length = 0;
+                        }, 1000);
+                    }
+                }
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>Glass Shattering Effect</h3>
+                    <p>Click on the glass panel to trigger a realistic shattering effect. The glass will break into shards that fly outward and fade away.</p>
+                    <p>This effect uses canvas drawing and physics simulation to create a dynamic and visually stunning animation.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            function createMorphingEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.backgroundColor = 'rgba(3, 0, 20, 0.9)';
+                
+                modalContent.appendChild(container);
+                
+                // Create SVG for morphing
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                container.appendChild(svg);
+                
+                // Create circle shape
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', '50%');
+                circle.setAttribute('cy', '50%');
+                circle.setAttribute('r', '50');
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', '#0fe');
+                circle.setAttribute('stroke-width', '2');
+                svg.appendChild(circle);
+                
+                // Create text
+                const text = document.createElement('div');
+                text.style.position = 'absolute';
+                text.style.top = '50%';
+                text.style.left = '50%';
+                text.style.transform = 'translate(-50%, -50%)';
+                text.style.fontFamily = '\'Orbitron\', sans-serif';
+                text.style.fontSize = '1.5rem';
+                text.style.color = '#fff';
+                text.style.textAlign = 'center';
+                text.style.pointerEvents = 'none';
+                text.textContent = 'HOVER ANYWHERE';
+                container.appendChild(text);
+                
+                // Shape morphing
+                const shapes = [
+                    { type: 'circle', attributes: { cx: '50%', cy: '50%', r: '50' } },
+                    { type: 'rect', attributes: { x: '40%', y: '40%', width: '20%', height: '20%', rx: '10' } },
+                    { type: 'polygon', attributes: { points: '50%,30% 70%,50% 50%,70% 30%,50%' } },
+                    { type: 'ellipse', attributes: { cx: '50%', cy: '50%', rx: '80', ry: '40' } }
+                ];
+                
+                let currentShape = 0;
+                
+                container.addEventListener('mousemove', (e) => {
+                    // Remove previous shape
+                    while (svg.firstChild) {
+                        svg.removeChild(svg.firstChild);
+                    }
+                    
+                    // Get mouse position relative to container
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Create new shape based on mouse position
+                    const shapeIndex = Math.floor((x / rect.width) * shapes.length);
+                    const nextShape = shapes[shapeIndex];
+                    
+                    // Create the shape element
+                    const shape = document.createElementNS('http://www.w3.org/2000/svg', nextShape.type);
+                    
+                    // Set all attributes
+                    for (const [attr, value] of Object.entries(nextShape.attributes)) {
+                        shape.setAttribute(attr, value);
+                    }
+                    
+                    // Set styling
+                    shape.setAttribute('fill', 'none');
+                    shape.setAttribute('stroke', `hsl(${(x / rect.width) * 60 + 180}, 100%, 70%)`);
+                    shape.setAttribute('stroke-width', '2');
+                    shape.setAttribute('transform', `rotate(${(y / rect.height) * 360}, ${rect.width / 2}, ${rect.height / 2})`);
+                    
+                    svg.appendChild(shape);
+                    
+                    // Create multiple copies with different sizes for depth effect
+                    for (let i = 1; i < 5; i++) {
+                        const clone = shape.cloneNode(true);
+                        const scale = 1 + (i * 0.5);
+                        clone.setAttribute('transform', `rotate(${(y / rect.height) * 360}, ${rect.width / 2}, ${rect.height / 2}) scale(${scale})`);
+                        clone.setAttribute('opacity', 1 - (i * 0.2));
+                        clone.setAttribute('stroke-width', 2 - (i * 0.3));
+                        svg.appendChild(clone);
+                    }
+                    
+                    // Update text
+                    text.textContent = nextShape.type.toUpperCase();
+                    text.style.color = `hsl(${(x / rect.width) * 60 + 180}, 100%, 70%)`;
+                });
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>Shape Morphing System</h3>
+                    <p>Move your mouse across the container to see shapes morph and transform. The horizontal position determines the shape, while vertical position controls rotation.</p>
+                    <p>This effect demonstrates how SVG elements can be dynamically manipulated to create fluid transitions between different geometric forms.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            function createAIDrivenEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.backgroundColor = 'rgba(3, 0, 20, 0.9)';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.style.flexDirection = 'column';
+                
+                modalContent.appendChild(container);
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                container.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Create text overlay
+                const text = document.createElement('div');
+                text.style.position = 'relative';
+                text.style.zIndex = '1';
+                text.style.fontFamily = '\'Orbitron\', sans-serif';
+                text.style.fontSize = '2rem';
+                text.style.color = '#fff';
+                text.style.textAlign = 'center';
+                text.textContent = 'SPEAK OR TYPE TO INTERACT';
+                container.appendChild(text);
+                
+                const subtext = document.createElement('div');
+                subtext.style.position = 'relative';
+                subtext.style.zIndex = '1';
+                subtext.style.fontFamily = '\'Rajdhani\', sans-serif';
+                subtext.style.fontSize = '1rem';
+                subtext.style.color = '#0fe';
+                subtext.style.textAlign = 'center';
+                subtext.style.marginTop = '10px';
+                subtext.textContent = 'AI system analyzing input patterns';
+                container.appendChild(subtext);
+                
+                // Create input field
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Type something...';
+                input.style.position = 'relative';
+                input.style.zIndex = '1';
+                input.style.margin = '20px';
+                input.style.padding = '10px 15px';
+                input.style.background = 'rgba(255, 255, 255, 0.1)';
+                input.style.border = '1px solid rgba(0, 255, 238, 0.3)';
+                input.style.borderRadius = '5px';
+                input.style.color = '#fff';
+                input.style.fontFamily = '\'Rajdhani\', sans-serif';
+                input.style.width = '80%';
+                input.style.maxWidth = '300px';
+                container.appendChild(input);
+                
+                // Particles for visualization
+                const particles = [];
+                const maxParticles = 200;
+                
+                function createParticle(x, y, color) {
+                    return {
+                        x: x || Math.random() * canvas.width,
+                        y: y || Math.random() * canvas.height,
+                        size: Math.random() * 3 + 1,
+                        color: color || `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                        vx: Math.random() * 2 - 1,
+                        vy: Math.random() * 2 - 1,
+                        life: Math.random() * 100 + 50
+                    };
+                }
+                
+                // Initialize particles
+                for (let i = 0; i < maxParticles / 2; i++) {
+                    particles.push(createParticle());
+                }
+                
+                // Input handling
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    
+                    if (value) {
+                        // Create burst of particles
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+                        
+                        // Color based on input length
+                        const hue = (value.length * 10) % 360;
+                        const color = `hsl(${hue}, 100%, 70%)`;
+                        
+                        for (let i = 0; i < 10; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = Math.random() * 100 + 50;
+                            const x = centerX + Math.cos(angle) * distance;
+                            const y = centerY + Math.sin(angle) * distance;
+                            
+                            particles.push(createParticle(x, y, color));
+                        }
+                        
+                        // Update text based on input
+                        if (value.length > 10) {
+                            text.textContent = value.toUpperCase();
+                            text.style.color = color;
+                        }
+                        
+                        // Update subtext
+                        subtext.textContent = `Analyzing ${value.length} characters... Pattern strength: ${Math.min(value.length * 5, 100)}%`;
+                    }
+                });
+                
+                // Animation loop
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw and update particles
+                    for (let i = 0; i < particles.length; i++) {
+                        const p = particles[i];
+                        
+                        p.life--;
+                        
+                        if (p.life <= 0) {
+                            particles.splice(i, 1);
+                            
+                            // Add new particle to maintain count
+                            if (particles.length < maxParticles) {
+                                particles.push(createParticle());
+                            }
+                            
+                            continue;
+                        }
+                        
+                        // Update position
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        
+                        // Bounce off walls
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -0.8;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -0.8;
+                        
+                        // Apply friction
+                        p.vx *= 0.99;
+                        p.vy *= 0.99;
+                        
+                        // Draw particle
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.life / 100;
+                        ctx.fill();
+                        
+                        // Connect nearby particles
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const p2 = particles[j];
+                            const dx = p.x - p2.x;
+                            const dy = p.y - p2.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < 50) {
+                                ctx.beginPath();
+                                ctx.moveTo(p.x, p.y);
+                                ctx.lineTo(p2.x, p2.y);
+                                ctx.strokeStyle = p.color;
+                                ctx.globalAlpha = (1 - distance / 50) * 0.5 * (p.life / 100);
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    
+                    if (modalContent.contains(container)) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+                
+                animate();
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>AI-Driven Reactive Animations</h3>
+                    <p>Type something in the input field to see the AI system analyze your input and create dynamic particle effects based on the text length and content.</p>
+                    <p>This effect demonstrates how AI can be used to create interactive and responsive animations that adapt to user input in real time.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            function create3DTransformEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.backgroundColor = 'rgba(3, 0, 20, 0.9)';
+                
+                modalContent.appendChild(container);
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                container.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Create 3D objects
+                const objects = [];
+                const objectCount = 10;
+                
+                for (let i = 0; i < objectCount; i++) {
+                    objects.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        z: Math.random() * 1000 - 500,
+                        size: Math.random() * 50 + 20,
+                        color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                        rotation: Math.random() * 360,
+                        rotationSpeed: Math.random() * 2 - 1
+                    });
+                }
+                
+                // Animation loop
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw and update objects
+                    for (const obj of objects) {
+                        ctx.save();
+                        
+                        // Update rotation
+                        obj.rotation += obj.rotationSpeed;
+                        
+                        // Calculate 3D position
+                        const perspective = 1000 / (1000 - obj.z);
+                        const x = (obj.x - canvas.width / 2) * perspective + canvas.width / 2;
+                        const y = (obj.y - canvas.height / 2) * perspective + canvas.height / 2;
+                        const size = obj.size * perspective;
+                        
+                        // Draw object
+                        ctx.translate(x, y);
+                        ctx.rotate(obj.rotation * Math.PI / 180);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(0, -size / 2);
+                        ctx.lineTo(size / 2, size / 2);
+                        ctx.lineTo(-size / 2, size / 2);
+                        ctx.closePath();
+                        
+                        ctx.fillStyle = obj.color;
+                        ctx.globalAlpha = perspective;
+                        ctx.fill();
+                        
+                        ctx.restore();
+                        
+                        // Update position
+                        obj.z -= 5;
+                        
+                        // Reset position if out of view
+                        if (obj.z < -500) {
+                            obj.z = 500;
+                            obj.x = Math.random() * canvas.width;
+                            obj.y = Math.random() * canvas.height;
+                        }
+                    }
+                    
+                    if (modalContent.contains(container)) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+                
+                animate();
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>3D Transformations</h3>
+                    <p>Experience gravity-defying objects and real-time depth effects that create a parallax illusion. The objects rotate and move in 3D space, creating a dynamic and immersive experience.</p>
+                    <p>This effect demonstrates how 3D transformations can be used to create visually stunning animations that respond to user interactions.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            function createShockwaveEffect() {
+                const container = document.createElement('div');
+                container.style.width = '100%';
+                container.style.height = '400px';
+                container.style.position = 'relative';
+                container.style.overflow = 'hidden';
+                container.style.borderRadius = '10px';
+                container.style.backgroundColor = 'rgba(3, 0, 20, 0.9)';
+                
+                modalContent.appendChild(container);
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                container.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Shockwave properties
+                let radius = 0;
+                const maxRadius = Math.max(canvas.width, canvas.height);
+                let opacity = 1;
+                
+                function drawShockwave() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw shockwave
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(0, 255, 238, ${opacity})`;
+                    ctx.lineWidth = 10;
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, radius - 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 0, 238, ${opacity * 0.7})`;
+                    ctx.lineWidth = 5;
+                    ctx.stroke();
+                    
+                    // Update properties
+                    radius += 15;
+                    opacity -= 0.02;
+                    
+                    // Continue animation if not complete
+                    if (radius < maxRadius && opacity > 0) {
+                        requestAnimationFrame(drawShockwave);
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                }
+                
+                // Start animation
+                drawShockwave();
+                
+                // Add description
+                const description = document.createElement('div');
+                description.innerHTML = `
+                    <h3>Shockwave & Explosion Effects</h3>
+                    <p>Experience Hollywood-style explosive impacts and ripple distortions. The shockwave effect creates a dynamic and visually stunning animation that responds to user interactions.</p>
+                    <p>This effect demonstrates how canvas drawing and animation can be used to create realistic and immersive visual effects.</p>
+                `;
+                modalContent.appendChild(description);
+            }
+            
+            // Initialize WebGL background
+            initWebGLBackground();
+        });
+        
+        // Initialize GSAP animations
+        function initAnimations() {
+            gsap.from('.hero-content', {
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+            
+            gsap.from('.section-title', {
+                scrollTrigger: {
+                    trigger: '.section-title',
+                    start: 'top 80%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none reverse'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: 'power2.out'
+            });
+            
+            gsap.from('.card', {
+                scrollTrigger: {
+                    trigger: '.card',
+                    start: 'top 80%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none reverse'
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.2,
+                ease: 'power2.out'
+            });
+        }
+        
+        // Initialize particle system
+        function initParticles() {
+            particlesJS('particle-container', {
+                particles: {
+                    number: {
+                        value: 80,
+                        density: {
+                            enable: true,
+                            value_area: 800
+                        }
+                    },
+                    color: {
+                        value: '#ffffff'
+                    },
+                    shape: {
+                        type: 'circle',
+                        stroke: {
+                            width: 0,
+                            color: '#000000'
+                        },
+                        polygon: {
+                            nb_sides: 5
+                        }
+                    },
+                    opacity: {
+                        value: 0.5,
+                        random: false,
+                        anim: {
+                            enable: false,
+                            speed: 1,
+                            opacity_min: 0.1,
+                            sync: false
+                        }
+                    },
+                    size: {
+                        value: 3,
+                        random: true,
+                        anim: {
+                            enable: false,
+                            speed: 40,
+                            size_min: 0.1,
+                            sync: false
+                        }
+                    },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#ffffff',
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 6,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false,
+                        attract: {
+                            enable: false,
+                            rotateX: 600,
+                            rotateY: 1200
+                        }
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: {
+                            enable: true,
+                            mode: 'repulse'
+                        },
+                        onclick: {
+                            enable: true,
+                            mode: 'push'
+                        },
+                        resize: true
+                    },
+                    modes: {
+                        grab: {
+                            distance: 400,
+                            line_linked: {
+                                opacity: 1
+                            }
+                        },
+                        bubble: {
+                            distance: 400,
+                            size: 40,
+                            duration: 2,
+                            opacity: 8,
+                            speed: 3
+                        },
+                        repulse: {
+                            distance: 200,
+                            duration: 0.4
+                        },
+                        push: {
+                            particles_nb: 4
+                        },
+                        remove: {
+                            particles_nb: 2
+                        }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+        
+        // Initialize everything on window load
+        window.addEventListener('load', () => {
+            initWebGLBackground();
+            initAnimations();
+            initParticles();
+        });
+    </script>
+</body>
+</html>
